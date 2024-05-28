@@ -10,8 +10,6 @@
 
 - **infrastructure**
   - `Docker`: for MySQL, Neo4J containers
-  - `Kubernetes`: for container orchestration
-  - `Terraform/Helm`: Infrastructure as Code tools for deployment
   - `Google Cloud`: for porting local application to the cloud
 - **Databases**
   - `MySQL`: legacy relational database
@@ -26,8 +24,7 @@
 
 - this section lists the sequence of steps that will be taken as part of this project:
   - clone this repository locally and setup development environment
-  - setup local Kubernetes cluster
-  - deploy MySQL and Neo4j containers
+  - deploy MySQL and Neo4j containers using docker compose
   - load sample data into MySQL
   - move data from MySQL to Neo4J
   - build the knowledge graph inside Neo4J
@@ -42,8 +39,12 @@
 
 ## references
 
+- [Knowledge Graphs - A Practical Review of the Research Landscape](/references/Knowledge_Graphs-A_Practical_Review.pdf)
+- [Building Semantic Knowledge Graphs](/references/Building_Semantic_Knowledge_Graphs.pdf)
+- [Knowledge Graphs - Research Paper](/references/Knowledge_Graphs-Research_paper.pdf)
 - [Neo4j Knowledge Graph Blog](https://neo4j.com/blog/what-is-knowledge-graph/)
 - [Knowledge Graph RAG Application](https://neo4j.com/developer-blog/knowledge-graph-rag-application/)
 - [LLM Graph Builder GitHub](https://github.com/neo4j-labs/llm-graph-builder)
 - [Neo4j LLM Knowledge Graph Builder](https://neo4j.com/labs/genai-ecosystem/llm-graph-builder/)
 - [LangChain Documentation](https://python.langchain.com/v0.1/docs/use_cases/graph/constructing/)
+- [Install Neo4J using Docker Compose](https://neo4j.com/docs/operations-manual/current/docker/introduction/)
