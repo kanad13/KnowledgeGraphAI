@@ -225,3 +225,195 @@ RETURN row;
 	"name": "TestName"
 }
 ```
+
+# load mysql data and pull into neo4j
+
+## load sample mysql data
+
+- **purpose for loading sample data**
+  - this section deals with loading some sample data inside the mysql database setup in the previous sections
+  - this data will then be imported inside neo4j using the connection setup in the previous section
+  - then we will be able to verify if changes in mysql are replicated inside neo4j and then is our AI able to RAG this data
+- **about the sample database**
+  - the [Sakila database](https://dev.mysql.com/doc/sakila/en/sakila-introduction.html) simulates a DVD rental store, including information about movies, actors, and customers
+  - it contains tables for films, actors, and film categories, as well as rental transactions and payment records
+  - customer and staff details, along with store locations, are also included
+  - the database tracks which films are rented, their rental history, and associated payments
+  - it serves as a practical example for learning SQL queries and database management
+- **download and unpack**
+  - download the database files from [here](https://dev.mysql.com/doc/index-other.html)
+  - unzip the file and place the artefacts inside the [plugins folder](/plugins)
+  - copy these files inside the mysql container
+    - `docker cp ./plugins/sakila-schema.sql mysql-container:/sakila-schema.sql`
+    - `docker cp ./plugins/sakila-data.sql mysql-container:/sakila-data.sql`
+- **load the database**
+  - log in to the mysql container and load the sakila database
+    - `docker exec -it mysql-container mysql -u root -p`
+  - use the password - `rootpassword`
+  - load the sakila schema
+    - `SOURCE /sakila-schema.sql;`
+  - load the sakila data
+    - `SOURCE /sakila-data.sql;`
+- **verify the data load**
+
+```sql
+SHOW DATABASES;
+USE sakila;
+SHOW TABLES;
+SELECT * FROM actor LIMIT 10;
+```
+
+- **grant permissions to neo4j**
+  - in the next section i will be pulling data from mysql into neo4j using cypher queries
+  - before doing this, i need to grant necessary privileges to the user
+
+```sql
+GRANT ALL PRIVILEGES ON sakila.* TO 'user'@'%';
+FLUSH PRIVILEGES;
+```
+
+- verify the privileges are set correctly
+  - `SHOW GRANTS FOR 'user'@'%';`
+- **bounce**
+  - bounce the containers
+    - `docker-compose down`
+    - `docker-compose up -d`
+  - check if containers are running again
+    - `docker ps`
+
+## pull mysql data into neo4j
+
+- **purpose**
+  - in the previous sections i have setup the mysql and neo4j containers using docker-compose and also loaded some sample data inside mysql
+  - in this section i want to pull the mysql data inside neo4j and setup a permenant connection so that any future changes to mysql data are replicated into neo4j
+- **configure neo4j to allow apoc procedures**
+  - create the [neo4j.conf file](/plugins/neo4j.conf) to include the necessary APOC configuration and place it in the plugins folder
+  - these are the contents of the conf file
+
+```conf
+apoc.import.file.enabled=true
+apoc.export.file.enabled=true
+apoc.import.file.use_neo4j_config=true
+apoc.import.file.use_system_temp_directory=false
+apoc.import.file.directories=/import,/plugins
+apoc.load.jdbc.allowlist=jdbc:mysql://mysql-container:3306
+```
+
+- copy this file to the neo4j container
+  - `docker cp ./plugins/neo4j.conf neo4j-container:/var/lib/neo4j/conf/neo4j.conf`
+- restart the neo4j container
+  - `docker-compose restart neo4j`
+- **create apoc procedures to load data from mysql**
+  - open the Neo4j browser at `http://localhost:7474/browser/` and log in with `neo4j` & `password`
+  - then run the following cypher queries to create procedures to load data from the mysql sakila database
+  - note that all sakila entities will be loaded to neo4j from mysql as shown [here](https://dev.mysql.com/doc/sakila/en/sakila-structure.html)
+
+```cypher
+CALL apoc.load.driver('com.mysql.cj.jdbc.Driver');
+
+// Load actors
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM actor') YIELD row
+RETURN row;
+
+// Load cities
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM city') YIELD row
+RETURN row;
+
+// Load countries
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM country') YIELD row
+RETURN row;
+
+// Load customers
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM customer') YIELD row
+RETURN row;
+
+// Load addresses
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM address') YIELD row
+RETURN row;
+
+// Load films
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM film') YIELD row
+RETURN row;
+
+// Load film_actor
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM film_actor') YIELD row
+RETURN row;
+
+// Load film_text
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM film_text') YIELD row
+RETURN row;
+
+// Load film_category
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM film_category') YIELD row
+RETURN row;
+
+// Load languages
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM language') YIELD row
+RETURN row;
+
+// Load categories
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM category') YIELD row
+RETURN row;
+
+// Load stores
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM store') YIELD row
+RETURN row;
+
+// Load inventories
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM inventory') YIELD row
+RETURN row;
+
+// Load rentals
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM rental') YIELD row
+RETURN row;
+
+// Load payments
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM payment') YIELD row
+RETURN row;
+
+// Load staff
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM staff') YIELD row
+RETURN row;
+
+// Load sales_by_store view
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM sales_by_store') YIELD row
+RETURN row;
+
+// Load customer_list view
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM customer_list') YIELD row
+RETURN row;
+
+// Load staff_list view
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM staff_list') YIELD row
+RETURN row;
+
+// Load film_list view
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM film_list') YIELD row
+RETURN row;
+
+// Load nicer_but_slower_film_list view
+CALL apoc.load.jdbc('jdbc:mysql://user:password@mysql-container:3306/sakila', 'SELECT * FROM nicer_but_slower_film_list') YIELD row
+RETURN row;
+```
+
+## verify pulled data inside neo4j
+
+- **purpose**
+  - in the previous steps we have looked at how to load sakila data into the mysql database and then also pull it inside neo4j
+  - this section looks at how to explore the pulled sakila data inside neo4j
+- **schema overview**
+  - note that the pulled data also includes the test node that i had pulled [from mydatabase earlier](/setup/readme.md#verify-mysql-setup)
+  - and plus it contains the sakila db schema
+  - ![](/assets/KnowledgeGraphAI-001.png)
+- **detailed schema**
+  - for a detailed look at the properties and labels of nodes and relationships, you can use these queries:
+  - list all labels - `CALL db.labels();`
+  - list all relationship types - `CALL db.relationshipTypes();`
+  - list all property keys - `CALL db.propertyKeys();`
+  - ![](/assets/KnowledgeGraphAI-002.png)
+  - ![](/assets/KnowledgeGraphAI-003.png)
+  - ![](/assets/KnowledgeGraphAI-004.png)
+- **inspect the data**
+  - this will return up to 25 nodes with their properties
+    - `MATCH (n) RETURN n LIMIT 25;`
+    - ![](/assets/KnowledgeGraphAI-005.png)
