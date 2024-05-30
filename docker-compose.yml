@@ -19,14 +19,14 @@ services:
     container_name: neo4j-container
     environment:
       NEO4J_AUTH: neo4j/password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
     ports:
       - "7474:7474"
       - "7687:7687"
     volumes:
       - neo4j-data:/data
-      - ./plugins:/plugins
+      - ./plugins:/var/lib/neo4j/plugins
+      - ./conf:/var/lib/neo4j/conf
+      - ./conf/apoc.conf:/var/lib/neo4j/conf/apoc.conf
 
 volumes:
   mysql-data:
