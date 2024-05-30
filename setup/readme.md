@@ -1,3 +1,25 @@
+1. [purpose](#purpose)
+2. [developer machine](#developer-machine)
+   1. [pre-requisites - developer machine](#pre-requisites---developer-machine)
+   2. [python virtual environment](#python-virtual-environment)
+   3. [vscode devcontainer](#vscode-devcontainer)
+   4. [streamlit - developer machine](#streamlit---developer-machine)
+3. [install neo4j \& mysql](#install-neo4j--mysql)
+   1. [setup configurations](#setup-configurations)
+   2. [start compose services](#start-compose-services)
+   3. [verify mysql setup](#verify-mysql-setup)
+   4. [verify neo4j setup](#verify-neo4j-setup)
+   5. [verify mysql \& neo4j connectivity](#verify-mysql--neo4j-connectivity)
+4. [load mysql data and pull into neo4j](#load-mysql-data-and-pull-into-neo4j)
+   1. [load sample mysql data](#load-sample-mysql-data)
+   2. [pull mysql data into neo4j](#pull-mysql-data-into-neo4j)
+   3. [explore loaded sakila data in neo4j](#explore-loaded-sakila-data-in-neo4j)
+5. [pending parts](#pending-parts)
+   1. [user flow](#user-flow)
+   2. [streamlit frontend](#streamlit-frontend)
+   3. [integrate LLM with LangChain](#integrate-llm-with-langchain)
+   4. [implement query handling](#implement-query-handling)
+
 # purpose
 
 - this page describes how to setup the local and cloud environments as summarized [here](/readme.md#sequence-of-steps)
@@ -681,21 +703,34 @@ LIMIT 10
 
 - ![](/assets/KnowledgeGraphAI-006.png)
 
-# PENDING PARTS
+# pending parts
 
-- **user flow**
+## user flow
+
+- this is the overall journey for the user
   - the user will ask questions from streamlit frontend to the LLM
   - the LLM reaches out to neo4j and formulates queries that will secure the necessary data
   - neo4j answers with the desired answer and LLM will provide the answer to the frontend
-- **missing parts**
-  - streamlit app that will act as a frontend for the GenAI application - it will connect the neo4j and LLM parts to give the ability to the user to
-    - create UI components to interact with the neo4j database
-    - integrate neo4j queries into the streamlit app to display data
+- see below the 3 major sections that are still pending to be developed
+  - streamlit frontend
   - integrate LLM with LangChain
-    - use LangChain to connect the streamlit app with Llama (or OpenAI, Gemini)
-    - configure the LLMGraphTransformer to process and respond to user queries
-    - ensure secure API connections and handle authentication
   - implement query handling
-    - allow users to input queries in natural language
-    - use LLMs to interpret queries and convert them into cypher queries for neo4j
-    - fetch the results from neo4j and display them in the streamlit app
+
+## streamlit frontend
+
+- streamlit app will act as a frontend for the GenAI application
+- it will connect the neo4j and LLM parts to give the ability to the user to
+  - create UI components to interact with the neo4j database
+  - integrate neo4j queries into the streamlit app to display data
+
+## integrate LLM with LangChain
+
+- use LangChain to connect the streamlit app with Llama (or OpenAI, Gemini)
+- configure the LLMGraphTransformer to process and respond to user queries
+- ensure secure API connections and handle authentication
+
+## implement query handling
+
+- allow users to input queries in natural language
+- use LLMs to interpret queries and convert them into cypher queries for neo4j
+- fetch the results from neo4j and display them in the streamlit app
